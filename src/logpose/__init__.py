@@ -1,6 +1,6 @@
 import time
 import yaml
-import pandas
+import pandas as pd
 import os
 
 class History:
@@ -20,7 +20,7 @@ class History:
         with open('.lp/' + yaml_file, 'r') as stream:
             if pandas:
                 parsed_yaml = yaml.load(stream)
-                return parsed_yaml['logpose'], pandas.DataFrame(parsed_yaml['traces']).transpose()
+                return parsed_yaml['logpose'], pd.DataFrame(parsed_yaml['traces']).transpose()
             else:
                 return yaml.load(stream)
 
