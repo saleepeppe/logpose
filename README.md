@@ -42,17 +42,17 @@ messy_code(my_params_2)
 my_logpose.bench_it('Prototype')
 my_logpose.bench_it()
 ```
-You only need the patience of changing the parameters in ```Logpose('My Simulation', 'Try to rule the world')``` at each run, to make the logpose meaningful (for you) in the future.
-Infact, at each run logpose saves a YAML file in the ```.lp``` folder of your project.
-Basically, if you want to track a file you need to instantiate a ```Logpose``` object.
-If you want to split your log in multiple parts you add a trace to the logpose ```Logpose.add_trace```. Instead to save other kind of parameters you may add a parameter to the trace ```Logpose.add_parameter```.
+You only need the patience of changing the parameters in `Logpose('name', 'description')` at each run, to make the logpose meaningful (for you) in the future.
+Infact, at each run logpose saves a YAML file in the `.lp` folder of your project.
+Basically, if you want to track a file you need to instantiate a `Logpose` object.
+If you want to split your log in multiple parts you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. Instead to save other kind of parameters you may add a parameter to the trace `add_parameter('trace_name', 'param_name', value)`.
 # Access a logpose file
-If you want to check what you have done in a simulation you just need to open them or as experimental feature you can create a ```History``` object.
+If you want to check what you have done in a simulation you just need to open them or as experimental feature you can create a `History` object.
 ```python
 history_log = History()
 my_history = history_log.history
 ```
-The code attribute ```history``` provides the list of all the YAML files, which can be loaded via:
+The code attribute `history` provides the list of all the YAML files, which can be loaded via:
 ```python
 import pandas
 my_history.load_event(my_history[0], pandas = True)
