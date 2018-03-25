@@ -30,9 +30,9 @@ messy_code(my_params_2)
 You run this script several times per day and you need to keep track of what is happening.
 Here it comes logpose.
 ```python
-import logpose
+import logpose as lp
 # Create your logpose
-my_logpose = Logpose('My Simulation', 'Try to rule the world')
+my_logpose = lp.Logpose('My Simulation', 'Try to rule the world')
 # Add a trace
 my_logpose.add_trace('Preprocessing', 'Kill all the enemies')
 my_params = random()
@@ -43,7 +43,7 @@ messy_code(my_params)
 my_logpose.bench_it('Preprocessing')
 my_logpose.add_trace('Prototype', 'Conquer the Russia')
 my_params_2 = random()
-my_logpose.add_parameter('Prototype', 'my_params_2', my_params_2)
+my_logpose.add_parameter('Prototype', 'my_params', my_params_2)
 messy_code(my_params_2)
 my_logpose.bench_it('Prototype')
 my_logpose.bench_it()
@@ -52,15 +52,15 @@ You only need the patience of changing the parameters in `Logpose('name', 'descr
 Infact, at each run logpose saves a YAML file in the `.lp` folder of your project.
 
 Basically, if you want to track a file you need to instantiate a `Logpose` object.
-If you want to split your log in multiple parts you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. To save other kind of parameters, you may add a parameter to a created trace `add_parameter('trace_name', 'param_name', value)`.
+If you want to split your log in multiple parts, you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. To save other kind of parameters, you may add a parameter to a created trace `add_parameter('trace_name', 'param_name', value)`.
 # Access a logpose file
 If you want to check what you have done in a simulation you just need to open them or as experimental feature you can create a `History` object.
 ```python
-history_log = History()
+history_log = lp.History()
 my_history = history_log.history
 ```
 The code attribute `history` provides the list of all the YAML files, which can be loaded via:
 ```python
 import pandas
-my_history.load_event(my_history[0], pandas = True)
+history_log.load_event(my_history[0], pandas = True)
 ```
