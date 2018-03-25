@@ -44,8 +44,9 @@ my_logpose.bench_it()
 ```
 You only need the patience of changing the parameters in `Logpose('name', 'description')` at each run, to make the logpose meaningful (for you) in the future.
 Infact, at each run logpose saves a YAML file in the `.lp` folder of your project.
+
 Basically, if you want to track a file you need to instantiate a `Logpose` object.
-If you want to split your log in multiple parts you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. Instead to save other kind of parameters you may add a parameter to the trace `add_parameter('trace_name', 'param_name', value)`.
+If you want to split your log in multiple parts you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. To save other kind of parameters, you may add a parameter to a created trace `add_parameter('trace_name', 'param_name', value)`.
 # Access a logpose file
 If you want to check what you have done in a simulation you just need to open them or as experimental feature you can create a `History` object.
 ```python
