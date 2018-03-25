@@ -9,6 +9,12 @@ Log library for python (suitable for ML prototyping and jupyter projects in gene
 At the moment the library is under development. Structure and features will come soon.
 Stay tuned!
 
+# Install
+Now logpose is on pip:
+```
+pip install logpose
+```
+
 # Usage
 Let us assume you have a python script that resembles to:
 ```python
