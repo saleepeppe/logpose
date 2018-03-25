@@ -12,8 +12,8 @@ setup(
     classifiers=[  # Optional
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'Topic :: Software Development :: Logging',
-        'License :: OSI Approved :: Apache License 2.0',
+        'Topic :: Software Development :: Version Control',
+        'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python :: 3.6',
     ],
     keywords='development logging',  # Optional
