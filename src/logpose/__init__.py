@@ -1,4 +1,5 @@
 import time
+import datetime
 import yaml
 import pandas as pd
 import os
@@ -27,6 +28,12 @@ class History:
 class Logpose:
     
     def __init__(self, name, description):
+        '''
+        Create an istance of a Logpose object.
+
+        - name (string): name of the Logpose
+        - description (string): description of the Logpose
+        '''
         self.timer = Timer()
         self.traces = {}
         self.open_traces = []
@@ -67,8 +74,10 @@ class Logpose:
         '''
         Store the logpose file.
         '''
+        now = datetime.datetime.now()
         yaml_file = {'logpose': self.stats, 'traces': self.parameters}
-        with open('.lp/' + str(time.time()) +'.yml', 'w') as outfile:
+        name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
+        with open('.lp/' + name_file +'.yml', 'w') as outfile:
             yaml.dump(yaml_file, outfile)
         
     def bench_it(self, name = False):
@@ -92,6 +101,13 @@ class Logpose:
 class Trace:
     
     def __init__(self, description = 'Running', timing = True, verbose = True):
+        '''
+        Create an instance of a Trace object.
+
+        - description (string): description of the trace
+        - timing (bool, default = True): whether to time the trace execution or not
+        - verbose (bool, default = True): whether to print out the results 
+        '''
         if timing:
             self.timer = Timer()
             self.time = ''
@@ -116,6 +132,8 @@ class Timer:
     def get_time(self, verbose = True):
         '''
         Get the time elapsed from the instantiation of a Timer object.
+        
+        - verbose (bool, default = True): whether to print out the result.
         '''
         self.time = time.time() - self.start
         if verbose:
