@@ -53,14 +53,16 @@ Infact, at each run logpose saves a YAML file in the `.lp` folder of your projec
 
 Basically, if you want to track a file you need to instantiate a `Logpose` object.
 If you want to split your log in multiple parts, you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. To save other kind of parameters, you may add a parameter to a created trace `add_parameter('trace_name', 'param_name', value)`.
+
 # Access a logpose file
-If you want to check what you have done in a simulation you just need to open them or as experimental feature you can create a `History` object.
+If you want to check what you have done in a simulation you just need to check in the **.lp** folder. Alternatively, it is possible to create a `History` object.
 ```python
 history_log = lp.History()
-my_history = history_log.history
+my_simulations = history_log.events
 ```
-The code attribute `history` provides the list of all the YAML files, which can be loaded via:
+The code attribute `events` provides the list of all the YAML files located in the logpose folder. To load an event:
 ```python
 import pandas
-history_log.load_event(my_history[0], pandas = True)
+history_log.load_event(my_simulations[0], pandas = True)
 ```
+When the `pandas` parameter is `True`, the method `load_event` returns 2d-tuple where the second element is a pandas dataframe.
