@@ -9,7 +9,7 @@ class History:
     def __init__(self):
         if not os.path.exists('.lp'):
             raise ValueError('No Logpose history found!')
-        self.history = [file for file in os.listdir('.lp/') if file.endswith('.yml')]
+        self.history = sorted([file for file in os.listdir('.lp/') if file.endswith('.yml')])
         
     def load_event(self, yaml_file, pandas = True):
         '''
@@ -24,6 +24,32 @@ class History:
                 return parsed_yaml['logpose'], pd.DataFrame(parsed_yaml['traces']).transpose()
             else:
                 return yaml.load(stream)
+
+    def compare(self, pandas = False):
+        '''
+        This method return all the logpose files in a list.
+        
+        - pandas (bool, default = False): if True it will return a pandas dataframe.
+        !!!WARNING!!
+        When pandas is set True the all the logpose files must have the same structure, meaning same parameters'
+        and traces' names.
+        '''
+        history_dict = []
+        for logpose in self.history:
+            with open ('.lp/' + logpose, 'r') as stream:
+                parsed_yaml = yaml.load(stream)
+                history_dict.append(parsed_yaml)
+        if pandas:
+            traces = [*history_dict[0]['traces']]
+            for i in history_dict[1::]:
+                if traces != [*i['traces']]:
+                    traces = []
+                    raise ValueError('The logpose files must have the same structure.')
+            history_df_dict = {}
+            for i in traces:
+                history_df_dict[i] = pd.DataFrame([x['traces'][i] for x in history_dict]).drop(['description'], axis = 1)
+            return history_df_dict
+        return history_dict
 
 class Logpose:
     
