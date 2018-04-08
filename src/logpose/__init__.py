@@ -9,7 +9,7 @@ class History:
     def __init__(self):
         if not os.path.exists('.lp'):
             raise ValueError('No Logpose history found!')
-        self.history = sorted([file for file in os.listdir('.lp/') if file.endswith('.yml')])
+        self.events = sorted([file for file in os.listdir('.lp/') if file.endswith('.yml')])
         
     def load_event(self, yaml_file, pandas = True):
         '''
@@ -35,7 +35,7 @@ class History:
         and traces' names.
         '''
         history_dict = []
-        for logpose in self.history:
+        for logpose in self.events:
             with open ('.lp/' + logpose, 'r') as stream:
                 parsed_yaml = yaml.load(stream)
                 history_dict.append(parsed_yaml)
@@ -47,9 +47,9 @@ class History:
                     raise ValueError('The logpose files must have the same structure.')
             history_df_dict = {}
             for i in traces:
-                history_df_dict[i] = pd.DataFrame([x['traces'][i] for x in history_dict], index = self.history).drop(['description'], axis = 1)
+                history_df_dict[i] = pd.DataFrame([x['traces'][i] for x in history_dict]).drop(['description'], axis = 1)
             history_df = pd.concat(history_df_dict, axis = 1)
-            history_df['logpose'] = self.history
+            history_df['logpose'] = self.events
             history_df.set_index('logpose', inplace = True)
             return history_df
         else:
