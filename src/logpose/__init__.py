@@ -47,9 +47,13 @@ class History:
                     raise ValueError('The logpose files must have the same structure.')
             history_df_dict = {}
             for i in traces:
-                history_df_dict[i] = pd.DataFrame([x['traces'][i] for x in history_dict]).drop(['description'], axis = 1)
-            return history_df_dict
-        return history_dict
+                history_df_dict[i] = pd.DataFrame([x['traces'][i] for x in history_dict], index = self.history).drop(['description'], axis = 1)
+            history_df = pd.concat(history_df_dict, axis = 1)
+            history_df['logpose'] = self.history
+            history_df.set_index('logpose', inplace = True)
+            return history_df
+        else:
+            return history_dict
 
 class Logpose:
     
