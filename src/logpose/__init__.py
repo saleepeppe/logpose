@@ -113,7 +113,7 @@ class Logpose:
         now = datetime.datetime.now()
         yaml_file = {'logpose': self.stats, 'traces': self.parameters}
         name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
-        with open('.lp/' + self.stats['name'] + name_file + '.yml', 'w') as outfile:
+        with open('.lp/' + self.stats['name'] '/' + name_file + '.yml', 'w') as outfile:
             yaml.dump(yaml_file, outfile)
         
     def bench_it(self, name = False):
