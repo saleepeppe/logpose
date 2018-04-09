@@ -13,7 +13,7 @@ class History:
         - name (string): name of the logpose
         '''
         self.name = name
-        if not os.path.exists('.lp' + name):
+        if not os.path.exists('.lp/' + name):
             raise ValueError('No Logpose history found!')
         self.events = sorted([file for file in os.listdir('.lp/' + self.name + '/') if file.endswith('.yml')])
         
