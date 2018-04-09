@@ -49,15 +49,15 @@ my_logpose.bench_it('Prototype')
 my_logpose.bench_it()
 ```
 You only need the patience of changing the parameters in `Logpose('name', 'description')` at each run, to make the logpose meaningful (for you) in the future.
-Infact, at each run logpose saves a YAML file in the `.lp` folder of your project.
+Infact, at each run logpose saves a YAML file in the folder `.lp/{name}` of your project.
 
 Basically, if you want to track a file you need to instantiate a `Logpose` object.
 If you want to split your log in multiple parts, you add a trace to the logpose `add_trace('trace_name', 'trace_description')`. To save other kind of parameters, you may add a parameter to a created trace `add_parameter('trace_name', 'param_name', value)`.
 
 # Access a logpose file
-If you want to check what you have done in a simulation you just need to check in the **.lp** folder. Alternatively, it is possible to create a `History` object.
+If you want to check what happened in a simulation, you just need to check in the **.lp** folder. Alternatively, it is possible to create a `History` object.
 ```python
-history_log = lp.History()
+history_log = lp.History('My Simulation')
 my_simulations = history_log.events
 ```
 The code attribute `events` provides the list of all the YAML files located in the logpose folder. To load an event:

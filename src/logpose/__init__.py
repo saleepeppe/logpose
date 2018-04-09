@@ -6,10 +6,16 @@ import os
 
 class History:
     
-    def __init__(self):
-        if not os.path.exists('.lp'):
+    def __init__(self, name):
+        '''
+        Create a history object based on the logpose name
+
+        - name (string): name of the logpose
+        '''
+        self.name = name
+        if not os.path.exists('.lp' + name):
             raise ValueError('No Logpose history found!')
-        self.events = sorted([file for file in os.listdir('.lp/') if file.endswith('.yml')])
+        self.events = sorted([file for file in os.listdir('.lp/' + self.name + '/') if file.endswith('.yml')])
         
     def load_event(self, yaml_file, pandas = True):
         '''
@@ -18,7 +24,7 @@ class History:
         - yaml_file (string): name of the logpose file to load
         - pandas (boolean): if True this function will return a tuple (a, b), where b is a pandas DataFrame
         '''
-        with open('.lp/' + yaml_file, 'r') as stream:
+        with open('.lp/' + self.name + '/' + yaml_file, 'r') as stream:
             if pandas:
                 parsed_yaml = yaml.load(stream)
                 return parsed_yaml['logpose'], pd.DataFrame(parsed_yaml['traces']).transpose()
@@ -36,7 +42,7 @@ class History:
         '''
         history_dict = []
         for logpose in self.events:
-            with open ('.lp/' + logpose, 'r') as stream:
+            with open ('.lp/' + self.name + '/' + logpose, 'r') as stream:
                 parsed_yaml = yaml.load(stream)
                 history_dict.append(parsed_yaml)
         if pandas:
@@ -73,8 +79,8 @@ class Logpose:
             'description': description,
             'time': ''
         }
-        if not os.path.exists('.lp'):
-            os.makedirs('.lp')
+        if not os.path.exists('.lp/' + self.stats['name'] + '/'):
+            os.makedirs('.lp/' + self.stats['name'])
 
     def add_trace(self, name, description):
         '''
@@ -107,7 +113,7 @@ class Logpose:
         now = datetime.datetime.now()
         yaml_file = {'logpose': self.stats, 'traces': self.parameters}
         name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
-        with open('.lp/' + name_file +'.yml', 'w') as outfile:
+        with open('.lp/' + self.stats['name'] + name_file + '.yml', 'w') as outfile:
             yaml.dump(yaml_file, outfile)
         
     def bench_it(self, name = False):
