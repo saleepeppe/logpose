@@ -115,7 +115,7 @@ class Logpose:
         if type(parameters) == dict:
             for name, parameter in parameters:
                 self.parameters[trace_name][name] = parameter
-        elif type(parameters) == tuple and parameters.shape == 2:
+        elif type(parameters) == tuple and len(parameters) == 2:
             self.parameters[trace_name][parameters[0]] = parameters[1]
         else:
             raise ValueError('The variable parameters must be a dict or a 2d tuple!')
