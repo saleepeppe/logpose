@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='logpose',  # Required
-    version='0.0.1.alpha5',  # Required
+    version='0.0.1.alpha6',  # Required
     description='A python log library',  # Required
     long_description='Log library for python (suitable for prototyping and jupyter projects in general).\n'+
         'Logpose generates YAML files to track each simulation run.',  # Optional
