@@ -124,12 +124,11 @@ class Logpose:
         '''
         Store the logpose file.
         '''
-        if not self.debug:
-            now = datetime.datetime.now()
-            yaml_file = {'logpose': self.stats, 'traces': self.parameters}
-            name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
-            with open('.lp/' + self.stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
-                yaml.dump(yaml_file, outfile)
+        now = datetime.datetime.now()
+        yaml_file = {'logpose': self.stats, 'traces': self.parameters}
+        name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
+        with open('.lp/' + self.stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
+            yaml.dump(yaml_file, outfile)
         
     def bench_it(self, name = False):
         '''
@@ -138,18 +137,18 @@ class Logpose:
 
         - name (string, default = False): name of the trace to benchmark 
         '''
-        if not self.debug:
-            if name:
-                if name in self.open_traces:
-                    self.traces[name].close()
-                    self.add_parameters(name, ('time', self.traces[name].time))
-                    self.open_traces.remove(name)
-                else:
-                    raise ValueError('The trace named {} is not in the logpose!'.format(name))
-            elif self.open_traces:
-                last_trace = self.open_traces[-1]
-                self.bench_it(last_trace)
-            if not self.open_traces:
+        if name and name not in self.open_traces:
+            raise ValueError('The trace named {} is not in the logpose!'.format(name))
+        elif name and name in self.open_traces:
+            if not self.debug:
+                self.traces[name].close()
+                self.add_parameters(name, ('time', self.traces[name].time))
+            self.open_traces.remove(name)
+        elif self.open_traces:
+            last_trace = self.open_traces[-1]
+            self.bench_it(last_trace)
+        if not self.open_traces:
+            if not self.debug:
                 self.stats['time'] = self.timer.get_time()
                 self.__save()
         
