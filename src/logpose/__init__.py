@@ -64,24 +64,28 @@ class History:
 
 class Logpose:
     
-    def __init__(self, name, description):
+    def __init__(self, name, description, debug = False):
         '''
         Create an istance of a Logpose object.
 
         - name (string): name of the Logpose
         - description (string): description of the Logpose
+        - debug (bool): if True pause the logpose
         '''
-        self.timer = Timer()
-        self.traces = {}
-        self.open_traces = []
-        self.parameters = {}
-        self.stats = {
-            'name': name,
-            'description': description,
-            'time': ''
-        }
-        if not os.path.exists('.lp/' + self.stats['name'] + '/'):
-            os.makedirs('.lp/' + self.stats['name'])
+        self.debug = debug
+        if not self.debug:
+            self.timer = Timer()
+            self.traces = {}
+            self.open_traces = []
+            self.parameters = {}
+            self.stats = {
+                'name': name,
+                'description': description,
+                'time': ''
+            }
+            if not os.path.exists('.lp/' + self.stats['name'] + '/'):
+                os.makedirs('.lp/' + self.stats['name'])
+        
 
     def add_trace(self, name, description):
         '''
@@ -90,12 +94,13 @@ class Logpose:
         - name (string): name which identifies the trace
         - description (string): short description which qualifies the trace
         '''
-        if name in self.traces.keys():
-            raise ValueError('The name {} is already taken!'.format(name))
-        print('\n' + name)
-        self.traces[name] = Trace(description)
-        self.open_traces.append(name)
-        self.parameters[name] = {'description': description}
+        if not self.debug:
+            if name in self.traces.keys():
+                raise ValueError('The name {} is already taken!'.format(name))
+            print('\n' + name)
+            self.traces[name] = Trace(description)
+            self.open_traces.append(name)
+            self.parameters[name] = {'description': description}
     
     def add_parameters(self, trace_name, parameters):
         '''
@@ -104,25 +109,27 @@ class Logpose:
         - trace_name (string): name which identifies the trace
         - parameters (dict, 2d tuple): dictionary of name and values of parameters or tuple of name and parameter value
         '''
-        if trace_name not in self.traces.keys():
-            raise ValueError('The trace {} does not exist!'.format(trace_name)) 
-        if type(parameters) == dict:
-            for name, parameter in parameters:
-                self.parameters[trace_name][name] = parameter
-        elif type(parameters) == tuple and parameters.shape == 2:
-            self.parameters[trace_name][parameters[0]] = parameters[1]
-        else:
-            raise ValueError('The variable parameters must be a dict or a 2d tuple!')
+        if not self.debug:
+            if trace_name not in self.traces.keys():
+                raise ValueError('The trace {} does not exist!'.format(trace_name)) 
+            if type(parameters) == dict:
+                for name, parameter in parameters:
+                    self.parameters[trace_name][name] = parameter
+            elif type(parameters) == tuple and parameters.shape == 2:
+                self.parameters[trace_name][parameters[0]] = parameters[1]
+            else:
+                raise ValueError('The variable parameters must be a dict or a 2d tuple!')
         
     def save(self):
         '''
         Store the logpose file.
         '''
-        now = datetime.datetime.now()
-        yaml_file = {'logpose': self.stats, 'traces': self.parameters}
-        name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
-        with open('.lp/' + self.stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
-            yaml.dump(yaml_file, outfile)
+        if not self.debug:
+            now = datetime.datetime.now()
+            yaml_file = {'logpose': self.stats, 'traces': self.parameters}
+            name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
+            with open('.lp/' + self.stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
+                yaml.dump(yaml_file, outfile)
         
     def bench_it(self, name = False):
         '''
@@ -131,16 +138,17 @@ class Logpose:
 
         - name (string, default = False): name of the trace to benchmark 
         '''
-        if name:
-            if name in self.open_traces:
-                self.traces[name].close()
-                self.add_parameters(name, ('time', self.traces[name].time))
-                self.open_traces.remove(name)
+        if not self.debug:
+            if name:
+                if name in self.open_traces:
+                    self.traces[name].close()
+                    self.add_parameters(name, ('time', self.traces[name].time))
+                    self.open_traces.remove(name)
+                else:
+                    raise ValueError('The trace named ' + str(name) + ' is not in the logpose!')
             else:
-                raise ValueError('The trace named ' + str(name) + ' is not in the logpose!')
-        else:
-            self.stats['time'] = self.timer.get_time()
-            self.save()
+                self.stats['time'] = self.timer.get_time()
+                self.save()
         
 class Trace:
     
