@@ -34,7 +34,7 @@ class History:
 
     def compare(self, pandas = False):
         '''
-        This method return all the logpose files in a list.
+        This method returns all the logpose files in a list.
         
         - pandas (bool, default = False): if True it will return a pandas dataframe.
         !!!WARNING!!
@@ -75,16 +75,16 @@ class Logpose:
         self.debug = debug
         if not self.debug:
             self.timer = Timer()
-            self.traces = {}
-            self.open_traces = []
-            self.parameters = {}
-            self.stats = {
-                'name': name,
-                'description': description,
-                'time': ''
-            }
-            if not os.path.exists('.lp/' + self.stats['name'] + '/'):
-                os.makedirs('.lp/' + self.stats['name'])
+        self.traces = {}
+        self.open_traces = []
+        self.parameters = {}
+        self.stats = {
+            'name': name,
+            'description': description,
+            'time': ''
+        }
+        if not os.path.exists('.lp/' + self.stats['name'] + '/'):
+            os.makedirs('.lp/' + self.stats['name'])
         
 
     def add_trace(self, name, description):
@@ -94,13 +94,14 @@ class Logpose:
         - name (string): name which identifies the trace
         - description (string): short description which qualifies the trace
         '''
-        if not self.debug:
-            if name in self.traces.keys():
-                raise ValueError('The name {} is already taken!'.format(name))
-            print('\n' + name)
+        if name in self.traces.keys():
+            raise ValueError('The name {} is already taken!'.format(name))
+        if not self.debug:    
+            print('\n')
+            print(name)
             self.traces[name] = Trace(description)
-            self.open_traces.append(name)
-            self.parameters[name] = {'description': description}
+        self.open_traces.append(name)
+        self.parameters[name] = {'description': description}
     
     def add_parameters(self, trace_name, parameters):
         '''
@@ -109,18 +110,17 @@ class Logpose:
         - trace_name (string): name which identifies the trace
         - parameters (dict, 2d tuple): dictionary of name and values of parameters or tuple of name and parameter value
         '''
-        if not self.debug:
-            if trace_name not in self.traces.keys():
-                raise ValueError('The trace {} does not exist!'.format(trace_name)) 
-            if type(parameters) == dict:
-                for name, parameter in parameters:
-                    self.parameters[trace_name][name] = parameter
-            elif type(parameters) == tuple and parameters.shape == 2:
-                self.parameters[trace_name][parameters[0]] = parameters[1]
-            else:
-                raise ValueError('The variable parameters must be a dict or a 2d tuple!')
+        if trace_name not in self.traces.keys():
+            raise ValueError('The trace {} does not exist!'.format(trace_name)) 
+        if type(parameters) == dict:
+            for name, parameter in parameters:
+                self.parameters[trace_name][name] = parameter
+        elif type(parameters) == tuple and parameters.shape == 2:
+            self.parameters[trace_name][parameters[0]] = parameters[1]
+        else:
+            raise ValueError('The variable parameters must be a dict or a 2d tuple!')
         
-    def save(self):
+    def __save(self):
         '''
         Store the logpose file.
         '''
@@ -145,10 +145,13 @@ class Logpose:
                     self.add_parameters(name, ('time', self.traces[name].time))
                     self.open_traces.remove(name)
                 else:
-                    raise ValueError('The trace named ' + str(name) + ' is not in the logpose!')
-            else:
+                    raise ValueError('The trace named {} is not in the logpose!'.format(name))
+            elif self.open_traces:
+                last_trace = self.open_traces[-1]
+                self.bench_it(last_trace)
+            if not self.open_traces:
                 self.stats['time'] = self.timer.get_time()
-                self.save()
+                self.__save()
         
 class Trace:
     
