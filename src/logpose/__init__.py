@@ -91,21 +91,28 @@ class Logpose:
         - description (string): short description which qualifies the trace
         '''
         if name in self.traces.keys():
-            raise ValueError('The name ' + str(name) + ' is already taken!')
+            raise ValueError('The name {} is already taken!'.format(name))
         print('\n' + name)
         self.traces[name] = Trace(description)
         self.open_traces.append(name)
         self.parameters[name] = {'description': description}
     
-    def add_parameter(self, trace_name, param_name, value):
+    def add_parameters(self, trace_name, parameters):
         '''
-        Add a parameter to the trace.
+        Add parameters to the trace.
 
         - trace_name (string): name which identifies the trace
-        - param_name (string): name which identifies the parameter
-        - value (any type): value of the parameter to log
+        - parameters (dict, 2d tuple): dictionary of name and values of parameters or tuple of name and parameter value
         '''
-        self.parameters[trace_name][param_name] = value
+        if trace_name not in self.traces.keys():
+            raise ValueError('The trace {} does not exist!'.format(trace_name)) 
+        if type(parameters) == dict:
+            for name, parameter in parameters:
+                self.parameters[trace_name][name] = parameter
+        elif type(parameters) == tuple and parameters.shape == 2:
+            self.parameters[trace_name][parameters[0]] = parameters[1]
+        else:
+            raise ValueError('The variable parameters must be a dict or a 2d tuple!')
         
     def save(self):
         '''
@@ -127,7 +134,7 @@ class Logpose:
         if name:
             if name in self.open_traces:
                 self.traces[name].close()
-                self.add_parameter(name, 'time', self.traces[name].time)
+                self.add_parameters(name, ('time', self.traces[name].time))
                 self.open_traces.remove(name)
             else:
                 raise ValueError('The trace named ' + str(name) + ' is not in the logpose!')
