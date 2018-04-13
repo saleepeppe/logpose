@@ -136,6 +136,7 @@ class Logpose:
 
         - name (string, default = False): name of the trace to benchmark 
         '''
+        result = False
         if name and name not in self.open_traces:
             raise ValueError('The trace named {} is not in the logpose!'.format(name))
         elif name and name in self.open_traces:
@@ -145,8 +146,9 @@ class Logpose:
             self.open_traces.remove(name)
         elif self.open_traces:
             last_trace = self.open_traces[-1]
-            self.bench_it(last_trace)
-        if not self.open_traces:
+            result = self.bench_it(last_trace)
+            return result
+        if not self.open_traces and not result:
             if not self.debug:
                 self.stats['time'] = self.timer.get_time()
                 self.__save()
