@@ -112,7 +112,7 @@ class Logpose:
         if trace_name not in self.open_traces:
             raise ValueError('The trace {} does not exist or has been closed!'.format(trace_name)) 
         if type(parameters) == dict:
-            for name, parameter in parameters:
+            for name, parameter in parameters.items():
                 self.parameters[trace_name][name] = parameter
         elif type(parameters) == tuple and len(parameters) == 2:
             self.parameters[trace_name][parameters[0]] = parameters[1]
