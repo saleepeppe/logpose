@@ -3,9 +3,9 @@ from setuptools import setup, find_packages
 setup(
     name='logpose',  # Required
     version='0.0.1.beta1',  # Required
-    description='A python log library',  # Required
-    long_description='Log library for Data Scientist written in Python (suitable for ML prototyping and jupyter projects in general).\n'+
-        'Logpose generates YAML files to track each simulation run.',  # Optional
+    description='A python log library for data science',  # Required
+    long_description='Logpose is a log library for Data Science, suitable for ML prototyping and jupyter projects in general.\n'+
+        'Logpose generates YAML files to track and benchmark parameters in simulations.',  # Optional
     url='https://github.com/saleepeppe/logpose',  # Optional
     author='Giuseppe Savino',  # Optional
     author_email='giuseppe.savino@outlook.com',  # Optional

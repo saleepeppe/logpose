@@ -1,5 +1,5 @@
 # logpose
-Log library for Data Scientist written in Python (suitable for ML prototyping and jupyter projects in general).
+Log library for Data Science written in Python (suitable for ML prototyping and jupyter projects in general).
 
 - Do you prototype in jupyter before deploy your code?
 - Do you run several python simulations and after a while you forget to keep track of your trials?
