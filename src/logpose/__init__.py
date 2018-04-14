@@ -4,41 +4,48 @@ import yaml
 import pandas as pd
 import os
 
-class History:
-    
-    def __init__(self, name):
-        '''
-        Create a history object based on the logpose name
+class History(object):
+    '''A history object allows to access the logs associated to a Logpose.
 
-        - name (string): name of the logpose
-        '''
+    Attributes:
+        events (list): list of all the logfiles associated to the Logpose named {name}.
+
+    Args:
+        name (string): name of the Logpose file.
+    '''
+    def __init__(self, name):
         self.name = name
         if not os.path.exists('.lp/' + self.name):
             raise ValueError('No Logpose history found!')
         self.events = sorted([file for file in os.listdir('.lp/' + self.name + '/') if file.endswith('.yml')])
         
-    def load_event(self, yaml_file, pandas = True):
-        '''
-        Return a logpose file log.
+    def load_event(self, yaml_file = -1, pandas = False):
+        '''Returns a Logpose file log provided the name.
 
-        - yaml_file (string): name of the logpose file to load
-        - pandas (boolean): if True this function will return a tuple (a, b), where b is a pandas DataFrame
+        Check the attribute events to get the log file names.
+
+        Args:
+            yaml_file (string): name of the logpose file to load. Default -1, load the last log.
+            pandas (bool): if True this method will return a tuple (a, b), where b is a pandas DataFrame.
+                Default False.
         '''
+        if yaml_file == -1:
+            yaml_file = self.events[yaml_file]
         with open('.lp/' + self.name + '/' + yaml_file, 'r') as stream:
             if pandas:
                 parsed_yaml = yaml.load(stream)
-                return parsed_yaml['logpose'], pd.DataFrame(parsed_yaml['traces']).transpose()
+                return parsed_yaml['logpose'], pd.DataFrame(parsed_yaml['routes']).transpose()
             else:
                 return yaml.load(stream)
 
     def compare(self, pandas = False):
-        '''
-        This method returns all the logpose files in a list.
+        '''This method returns all the logpose files in a list or a pandas dataframe.
+
+        When pandas is set to True, it is recommended that all the logpose files have the same
+        structure.
         
-        - pandas (bool, default = False): if True it will return a pandas dataframe.
-        !!!WARNING!!
-        When pandas is set True the all the logpose files must have the same structure, meaning same parameters'
-        and traces' names.
+        Args:
+            pandas (bool, optional): if True it will return a pandas dataframe. Default False.
         '''
         history_dict = []
         for logpose in self.events:
@@ -46,14 +53,14 @@ class History:
                 parsed_yaml = yaml.load(stream)
                 history_dict.append(parsed_yaml)
         if pandas:
-            traces = [*history_dict[0]['traces']]
+            routes = [*history_dict[0]['routes']]
             for i in history_dict[1::]:
-                if traces != [*i['traces']]:
-                    traces = []
+                if routes != [*i['routes']]:
+                    routes = []
                     raise ValueError('The logpose files must have the same structure.')
             history_df_dict = {}
-            for i in traces:
-                history_df_dict[i] = pd.DataFrame([x['traces'][i] for x in history_dict]).drop(['description'], axis = 1)
+            for i in routes:
+                history_df_dict[i] = pd.DataFrame([x['routes'][i] for x in history_dict]).drop(['description'], axis = 1)
             history_df = pd.concat(history_df_dict, axis = 1)
             history_df['logpose'] = self.events
             history_df.set_index('logpose', inplace = True)
@@ -61,108 +68,138 @@ class History:
         else:
             return history_dict
 
-class Logpose:
-    
-    def __init__(self, name, description, debug = False):
-        '''
-        Create an istance of a Logpose object.
+class Logpose(object):
+    '''A Logpose object is a logging container object. 
 
-        - name (string): name of the Logpose
-        - description (string): description of the Logpose
-        - debug (bool): if True pause the logpose
-        '''
-        self.debug = debug
-        if not self.debug:
-            self.timer = Timer()
-        self.traces = {}
-        self.open_traces = []
-        self.parameters = {}
-        self.stats = {
+    It allows to create and to structure logpose files, which are YAML files, meant to serve as logs.
+    Once it is instantiated, an empty list of tasks to log is created. Each of these task is defined
+    as a logpose route. To add a route to the log, it is necessary to call the add_route() method.
+    The call of this class will create the folder './.lp/{name}/' where the log file will be stored.
+    If no other method is called, the file will only contain the time elapsed between the instantiation 
+    of the class and the execution of bench_it().
+
+    See add_route(), bench_it() and add_parameters() methods to compose the log.
+
+    Args:
+        name (str): name of the Logpose.
+            This name will be used to identify the logs. Logs sharing same will live in the same folder. 
+        description (str): description of the log.
+            The description should be relevant to discriminate logs having the same name.
+        debug (bool, optional): if True no log will be created. Default False.
+            Set it to true when the code to be logged is under development or you do not want to store a log.
+    '''
+    def __init__(self, name, description, debug = False):
+        self._debug = debug
+        if not self._debug:
+            self._timer = Timer()
+        self._routes = {}
+        self._open_routes = []
+        self._parameters = {}
+        self._stats = {
             'name': name,
             'description': description,
             'time': ''
         }
-        if not os.path.exists('.lp/' + self.stats['name'] + '/'):
-            os.makedirs('.lp/' + self.stats['name'])
-        
+        if not os.path.exists('.lp/' + self._stats['name'] + '/'):
+            os.makedirs('.lp/' + self._stats['name'])
 
-    def add_trace(self, name, description):
+    def __save(self):
+        '''Store the logpose file.
         '''
-        Add a trace to the logpose.
+        now = datetime.datetime.now()
+        yaml_file = {'logpose': self._stats, 'routes': self._parameters}
+        name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
+        with open('.lp/' + self._stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
+            yaml.dump(yaml_file, outfile)
+
+    def add_route(self, name, description):
+        '''This method adds a Route object to a Logpose.
+
+        A route is a unit of code doing a task to be logged.
+        Once a route is added, a timer starts and counts till the bench_it({name}) method is called.
+        This method can be regarded as the opening tag defining the creation of a route, meanwhile the
+        bench_it({name}) method represents the closing one.
+        If no other method is called the route will only store the description and time elapsed to
+        excute the code contained between the call of add_parameter() and bench_it().
         
-        - name (string): name which identifies the trace
-        - description (string): short description which qualifies the trace
+        See add_parameters() method to store other parameters into the log.
+
+        Example:
+            my_lp = Logpose('Log', 'I am a log')        # create a Logpose 
+            my_lp.add_route('Route', 'I am a route')    # open a Route
+                'Unit of code doing stuff to 
+                log and to benchmark'
+            my_lp.bench_it('Route')                      # close the Route
+        
+        Args:
+            name (str): name of the Route.
+                This name will be used to identify the route.
+            description (str): description of the route.
+                The description should characterise the task achieved by the route.
         '''
-        if name in self.traces.keys():
+        if name in self._routes.keys():
             raise ValueError('The name {} is already taken!'.format(name))
-        if not self.debug:    
+        if not self._debug:    
             print('\n')
             print(name)
-            self.traces[name] = Trace(description)
-        self.open_traces.append(name)
-        self.parameters[name] = {'description': description}
+            self._routes[name] = Route(description)
+        self._open_routes.append(name)
+        self._parameters[name] = {'description': description}
     
-    def add_parameters(self, trace_name, parameters):
-        '''
-        Add parameters to the trace.
+    def add_parameters(self, route_name, parameters):
+        '''Add parameters to a Logpose, linked to a specific Route.
 
-        - trace_name (string): name which identifies the trace
-        - parameters (dict, 2d tuple): dictionary of name and values of parameters or tuple of name and parameter value
+        This method allows to store other parameters to the logfile.
+        Add a parameter whenever a variable's value needs to be tracked for future evaluations.
+
+        Args:
+            route_name (string): name of the route to which the parameter is linked. 
+            parameters (dict, 2d-tuple): dictionary of names and values of parameters or tuple of name and parameter value.
+                Ex: {'Param_name1': param_value1, 'Param_name2': param_value2} or ('Param_name, param_value)
         '''
-        if trace_name not in self.open_traces:
-            raise ValueError('The trace {} does not exist or has been closed!'.format(trace_name)) 
+        if route_name not in self._open_routes:
+            raise ValueError('The route {} does not exist or has been closed!'.format(route_name)) 
         if type(parameters) == dict:
             for name, parameter in parameters.items():
-                self.parameters[trace_name][name] = parameter
+                self._parameters[route_name][name] = parameter
         elif type(parameters) == tuple and len(parameters) == 2:
-            self.parameters[trace_name][parameters[0]] = parameters[1]
+            self._parameters[route_name][parameters[0]] = parameters[1]
         else:
             raise ValueError('The variable parameters must be a dict or a 2d tuple!')
         
-    def __save(self):
-        '''
-        Store the logpose file.
-        '''
-        now = datetime.datetime.now()
-        yaml_file = {'logpose': self.stats, 'traces': self.parameters}
-        name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
-        with open('.lp/' + self.stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
-            yaml.dump(yaml_file, outfile)
-        
     def bench_it(self, name = False):
-        '''
-        Get the time elapsed to evaluate a trace, given the trace name. 
-        When no parameter is passed it evaluates the total time elapsed.
+        '''Close a Route given the Route name.
 
-        - name (string, default = False): name of the trace to benchmark 
+        Args:
+            name (string): name of the Route to close and benchmark.
         '''
         result = False
-        if name and name not in self.open_traces:
-            raise ValueError('The trace named {} is not in the logpose!'.format(name))
-        elif name and name in self.open_traces:
-            if not self.debug:
-                self.traces[name].close()
-                self.add_parameters(name, ('time', self.traces[name].time))
-            self.open_traces.remove(name)
-        elif self.open_traces:
-            last_trace = self.open_traces[-1]
-            result = self.bench_it(last_trace)
+        if name and name not in self._open_routes:
+            raise ValueError('The route named {} is not in the logpose!'.format(name))
+        elif name and name in self._open_routes:
+            if not self._debug:
+                self._routes[name].close()
+                self.add_parameters(name, ('time', self._routes[name].time))
+            self._open_routes.remove(name)
+        elif self._open_routes:
+            last_route = self._open_routes[-1]
+            result = self.bench_it(last_route)
             return result
-        if not self.open_traces and not result:
-            if not self.debug:
-                self.stats['time'] = self.timer.get_time()
+        if not self._open_routes and not result:
+            if not self._debug:
+                self._stats['time'] = self._timer.get_time()
                 self.__save()
         
-class Trace:
-    
-    def __init__(self, description = 'Running', timing = True, verbose = True):
-        '''
-        Create an instance of a Trace object.
+class Route(object):
+    '''
+        Create an instance of a Route object.
 
-        - description (string): description of the trace
-        - timing (bool, default = True): whether to time the trace execution or not
-        - verbose (bool, default = True): whether to print out the results 
-        '''
+    Args:
+        description (string, optional): description of the Route. Default 'Running'.
+        timing (bool, optional): whether to time the route execution or not. Default True.
+        verbose (bool, optional): whether to print out the results. Default False.
+    '''
+    def __init__(self, description = 'Running', timing = True, verbose = True):
         if timing:
             self.timer = Timer()
             self.time = ''
@@ -171,27 +208,38 @@ class Trace:
             print(description + '...')
     
     def close(self):
-        '''
-        Close a trace instance by getting the elapsed time.
+        '''Close a route instance by getting the elapsed time.
         '''
         print('OK!')
         print('-------------------------------------------', end = '\n')
         self.time = self.timer.get_time()
 
-class Timer:
-    
+class Timer(object):
+    '''A simple time object.
+    '''
     def __init__(self):
         self.start = time.time()
         self.time = ''
     
     def get_time(self, verbose = True):
-        '''
-        Get the time elapsed from the instantiation of a Timer object.
+        '''Get the time elapsed from the instantiation of a Timer object.
         
-        - verbose (bool, default = True): whether to print out the result.
+        Args:
+            verbose (bool, optional): whether to print out the result of not. Default True.
         '''
         self.time = time.time() - self.start
         if verbose:
+            if self.time < 60:
+                unit = 's'
+                time_to_print = self.time
+            elif self.time < 3600:
+                unit = 'm'
+                minutes = self.time / 60
+                time_to_print = str(self.time / 60) + unit 
+
+            else:
+                unit = 'h'
+
             print('\n-------------------------------------------')
             print('Run in: {}s'.format(self.time))
             print('-------------------------------------------', end = '\n')
