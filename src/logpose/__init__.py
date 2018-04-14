@@ -230,18 +230,17 @@ class Timer(object):
         self.time = time.time() - self.start
         if verbose:
             if self.time < 60:
-                unit = 's'
                 time_to_print = self.time
             elif self.time < 3600:
-                unit = 'm'
-                minutes = self.time / 60
-                time_to_print = str(self.time / 60) + unit 
-
+                minutes = round(self.time / 60, 0)
+                time_to_print = str(minutes) + ' m ' + str(self.time - minutes * 60)
             else:
-                unit = 'h'
-
+                hours = round(self.time / 3600, 0)
+                minutes = round(self.time / 60 - hours)
+                seconds = (self.time / 60 - hours) / 60 - minutes
+                time_to_print = str(hours) + ' h ' + str(self.time - minutes) + ' m ' + str(seconds)
             print('\n-------------------------------------------')
-            print('Run in: {}s'.format(self.time))
+            print('Run in: {} s'.format(time_to_print))
             print('-------------------------------------------', end = '\n')
             return self.time
         else:
