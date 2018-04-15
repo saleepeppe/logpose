@@ -90,8 +90,7 @@ class Logpose(object):
     '''
     def __init__(self, name, description, debug = False):
         self._debug = debug
-        if not self._debug:
-            self._timer = Timer()
+        self._timer = None
         self._routes = {}
         self._open_routes = []
         self._parameters = {}
@@ -139,7 +138,9 @@ class Logpose(object):
         '''
         if name in self._routes.keys():
             raise ValueError('The name {} is already taken!'.format(name))
-        if not self._debug:    
+        if not self._debug:
+            if not self._routes.keys():
+                self._timer = Timer()
             print('\n')
             print(name)
             self._routes[name] = Route(description)
