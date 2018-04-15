@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='logpose',  # Required
-    version='0.0.1.beta1',  # Required
+    version='0.0.1.beta2',  # Required
     description='A python log library for data science',  # Required
     long_description='Logpose is a log library for Data Science, suitable for ML prototyping and jupyter projects in general.\n'+
         'Logpose generates YAML files to track and benchmark parameters in simulations.',  # Optional

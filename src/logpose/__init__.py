@@ -75,10 +75,9 @@ class Logpose(object):
     Once it is instantiated, an empty list of tasks to log is created. Each of these task is defined
     as a logpose route. To add a route to the log, it is necessary to call the add_route() method.
     The call of this class will create the folder './.lp/{name}/' where the log file will be stored.
-    If no other method is called, the file will only contain the time elapsed between the instantiation 
-    of the class and the execution of bench_it().
+    If no other method is called, the file will only contain the name and the description of the object.
 
-    See add_route(), bench_it() and add_parameters() methods to compose the log.
+    See add_route(), add_parameters() and save() methods to compose the log.
 
     Args:
         name (str): name of the Logpose.
@@ -90,7 +89,6 @@ class Logpose(object):
     '''
     def __init__(self, name, description, debug = False):
         self._debug = debug
-        self._timer = None
         self._routes = {}
         self._open_routes = []
         self._parameters = {}
@@ -101,15 +99,7 @@ class Logpose(object):
         }
         if not os.path.exists('.lp/' + self._stats['name'] + '/'):
             os.makedirs('.lp/' + self._stats['name'])
-
-    def __save(self):
-        '''Store the logpose file.
-        '''
-        now = datetime.datetime.now()
-        yaml_file = {'logpose': self._stats, 'routes': self._parameters}
-        name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
-        with open('.lp/' + self._stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
-            yaml.dump(yaml_file, outfile)
+        self._saved = False
 
     def add_route(self, name, description):
         '''This method adds a Route object to a Logpose.
@@ -139,8 +129,6 @@ class Logpose(object):
         if name in self._routes.keys():
             raise ValueError('The name {} is already taken!'.format(name))
         if not self._debug:
-            if not self._routes.keys():
-                self._timer = Timer()
             print('\n')
             print(name)
             self._routes[name] = Route(description)
@@ -168,29 +156,38 @@ class Logpose(object):
         else:
             raise ValueError('The variable parameters must be a dict or a 2d tuple!')
         
-    def bench_it(self, name = False):
+    def bench_it(self, name):
         '''Close a Route given the Route name.
 
         Args:
             name (string): name of the Route to close and benchmark.
         '''
-        result = False
-        if name and name not in self._open_routes:
+        if name not in self._open_routes:
             raise ValueError('The route named {} is not in the logpose!'.format(name))
-        elif name and name in self._open_routes:
+        else:
             if not self._debug:
                 self._routes[name].close()
                 self.add_parameters(name, ('time', self._routes[name].time))
             self._open_routes.remove(name)
-        elif self._open_routes:
-            last_route = self._open_routes[-1]
-            result = self.bench_it(last_route)
-            return result
-        if not self._open_routes and not result:
-            if not self._debug:
-                self._stats['time'] = self._timer.get_time()
-                self.__save()
-        
+
+    def save(self):
+        '''Store the logpose file.
+        '''
+        if self._open_routes:
+            raise RuntimeError('You must close all the open routes before to save the log!')
+        if not self._parameters:
+            raise RuntimeError('You cannot save a logpose without any route in it!')
+        if not self._saved and not self._debug:
+            self._stats['time'] = sum([x['time'] for x in self._parameters.values()])
+            now = datetime.datetime.now()
+            yaml_file = {'logpose': self._stats, 'routes': self._parameters}
+            name_file = str(now.date()).replace('-', '') + '_' + str(now.time()).replace(':', '').replace('.', '_')
+            with open('.lp/' + self._stats['name'] + '/' + name_file + '.yml', 'w') as outfile:
+                yaml.dump(yaml_file, outfile)
+            self._saved = True
+        else:
+            raise RuntimeError('You have already saved this log!')
+
 class Route(object):
     '''
         Create an instance of a Route object.

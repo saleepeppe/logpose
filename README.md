@@ -91,12 +91,13 @@ param = {'max_depth': 2, 'eta': 1, 'silent': 1, 'objective': 'binary:logistic' }
 num_round = 2
 bst = xgb.train(param, dtrain, num_round)
 my_logpose.bench_it('Model')
+my_logpose.save()
 ''' CODE MISSING '''
 ```
 The code above shows how to create a `Route` and how to close it via the method `bench_it()`.
 To summarise, the methods `add_route()` and `bench_it()` are respectively the opening and closing tag, wrapping the code we aim to log.
 
-Now, the `Logpose` instance is aware of a task to log and it is also timing it. The code written above, would create a log file in the folder **./.lp/xgboost** in which are stored the description of the `Logpose`, the characteristics (name and description) of the `Route` and its execution time.
+Now, the `Logpose` instance is aware of a task to log and it is also timing it. The code written above, would create a log file in the folder **./.lp/xgboost** in which are stored the description of the `Logpose`, the characteristics (name and description) of the `Route` and its execution time. The file is saved once the meth `save()` is called.
 In order to track also the xgboost parameters, we have to use the method `add_parameters()`.
 ```python
 import logpose as lp
@@ -111,6 +112,7 @@ num_round = 2
 my_logpose.add_parameters('Model', ('num_round', 2))
 bst = xgb.train(param, dtrain, num_round)
 my_logpose.bench_it('Model')
+my_logpose.save()
 ''' CODE MISSING '''
 ```
 In this way also the parameters (`param` and `num_round`) would get saved inside the logfile.
@@ -135,6 +137,7 @@ my_logpose.bench_it('Model')
 my_logpose.add_route('Results', 'Metrics over train and validation sets')
 ''' CODE MISSING '''
 my_logpose.bench_it('Results')
+my_logpose.save()
 ```
 
 #### History object
